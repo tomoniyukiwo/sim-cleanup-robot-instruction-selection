@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "suite": "libero_object",
+  "fewshot_task_id": 0,
+  "note": "Task 0 is prompt-only. All registered task IDs 1-9 appear in held-out evaluation. Expected outcomes fixed before Qwen3.5 inference.",
+  "cases": [
+    {"id":"cream_cheese_standard","kind":"standard","instruction":"pick up the cream cheese and place it in the basket","context":[],"expected_decision":"execute","expected_task_id":1},
+    {"id":"cream_cheese_indirect","kind":"indirect","instruction":"クリームチーズの容器をバスケットにしまってください","context":[],"expected_decision":"execute","expected_task_id":1},
+    {"id":"salad_dressing_standard","kind":"standard","instruction":"pick up the salad dressing and place it in the basket","context":[],"expected_decision":"execute","expected_task_id":2},
+    {"id":"salad_dressing_indirect","kind":"indirect","instruction":"サラダドレッシングをかごの中に片付けてください","context":[],"expected_decision":"execute","expected_task_id":2},
+    {"id":"bbq_sauce_standard","kind":"standard","instruction":"pick up the bbq sauce and place it in the basket","context":[],"expected_decision":"execute","expected_task_id":3},
+    {"id":"bbq_sauce_indirect","kind":"indirect","instruction":"バーベキューソースをバスケットに収めてください","context":[],"expected_decision":"execute","expected_task_id":3},
+    {"id":"ketchup_standard","kind":"standard","instruction":"pick up the ketchup and place it in the basket","context":[],"expected_decision":"execute","expected_task_id":4},
+    {"id":"ketchup_indirect","kind":"indirect","instruction":"ケチャップのボトルをかごへ片付けてください","context":[],"expected_decision":"execute","expected_task_id":4},
+    {"id":"tomato_sauce_standard","kind":"standard","instruction":"pick up the tomato sauce and place it in the basket","context":[],"expected_decision":"execute","expected_task_id":5},
+    {"id":"tomato_sauce_indirect","kind":"indirect","instruction":"トマトソースの容器をバスケットへしまってください","context":[],"expected_decision":"execute","expected_task_id":5},
+    {"id":"butter_standard","kind":"standard","instruction":"pick up the butter and place it in the basket","context":[],"expected_decision":"execute","expected_task_id":6},
+    {"id":"butter_indirect","kind":"indirect","instruction":"バターをかごに収めてください","context":[],"expected_decision":"execute","expected_task_id":6},
+    {"id":"milk_standard","kind":"standard","instruction":"pick up the milk and place it in the basket","context":[],"expected_decision":"execute","expected_task_id":7},
+    {"id":"milk_indirect","kind":"indirect","instruction":"牛乳のパックを片付けたい。バスケットに収めてください","context":[],"expected_decision":"execute","expected_task_id":7},
+    {"id":"milk_ambiguous","kind":"ambiguous","instruction":"飲み物をバスケットへ片付けて","context":[],"expected_decision":"clarify","expected_task_id":null},
+    {"id":"milk_reply","kind":"reply","instruction":"牛乳の方です。バスケットへ入れてください","context":[{"request":"飲み物をバスケットへ片付けて","question":"どの飲み物ですか？"}],"expected_decision":"execute","expected_task_id":7},
+    {"id":"pudding_standard","kind":"standard","instruction":"pick up the chocolate pudding and place it in the basket","context":[],"expected_decision":"execute","expected_task_id":8},
+    {"id":"pudding_indirect","kind":"indirect","instruction":"チョコレートプリンの容器をかごにしまってください","context":[],"expected_decision":"execute","expected_task_id":8},
+    {"id":"pudding_ambiguous","kind":"ambiguous","instruction":"食べ物をかごへ入れて","context":[],"expected_decision":"clarify","expected_task_id":null},
+    {"id":"pudding_reply","kind":"reply","instruction":"チョコレートプリンです。かごへ入れてください","context":[{"request":"食べ物をかごへ入れて","question":"どの食べ物ですか？"}],"expected_decision":"execute","expected_task_id":8},
+    {"id":"juice_standard","kind":"standard","instruction":"pick up the orange juice and place it in the basket","context":[],"expected_decision":"execute","expected_task_id":9},
+    {"id":"juice_indirect","kind":"indirect","instruction":"オレンジジュースの容器をバスケットに収めてください","context":[],"expected_decision":"execute","expected_task_id":9},
+    {"id":"juice_ambiguous","kind":"ambiguous","instruction":"飲み物をかごへ入れて","context":[],"expected_decision":"clarify","expected_task_id":null},
+    {"id":"juice_reply","kind":"reply","instruction":"オレンジジュースです。かごへ入れてください","context":[{"request":"飲み物をかごへ入れて","question":"どの飲み物ですか？"}],"expected_decision":"execute","expected_task_id":9}
+  ]
+}

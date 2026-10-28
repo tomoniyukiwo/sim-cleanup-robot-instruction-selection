@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "suite": "libero_object",
+  "example_task_id": 0,
+  "note": "Prompt examples only. Task 0 is excluded from all Qwen3.5 evaluation cases.",
+  "examples": [
+    {
+      "instruction": "pick up the alphabet soup and place it in the basket",
+      "answer": {"decision": "execute", "task_id": 0, "message": "アルファベットスープをかごに入れます。", "retry_on_timeout": false}
+    },
+    {
+      "instruction": "アルファベットスープの缶をバスケットに片付けてください",
+      "answer": {"decision": "execute", "task_id": 0, "message": "アルファベットスープをかごに入れます。", "retry_on_timeout": false}
+    }
+  ]
+}

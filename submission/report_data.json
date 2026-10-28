@@ -1,0 +1,14 @@
+{
+  "account": "［omnicampusアカウント名を記入］",
+  "github_url": "［公開GitHub URLを記入］",
+  "youtube_url": "［YouTube URLを記入］",
+  "git_commit": "［公開したcommit SHAを記入］",
+  "result_note": "登録済みtask_idを明示してSmolVLAを直接実行した9タスクの物理試行を撮影した。これはQwen3.5とMiniLMの独立した操作試行ではない。",
+  "input_instruction": "各タスクの英語標準指示をSmolVLAに使用。比較動画上の日本語入力は別途測定した遠回しな指示。",
+  "task": "libero_object / task 1〜9。各タスクのシーンを個別に初期化。",
+  "result": "task 1〜6、8、9はLIBERO目標達成。task 7（牛乳）は200ステップで未達。合計8/9。",
+  "conditions": "各タスクseed 42 / init_state 0 / 200ステップ以内 / 1試行。task_idを明示して同じSmolVLA方策を使用。",
+  "model_revisions": "SmolVLA: a24f1f380461b665158d52acd140152c79e8b36d / Qwen3.5: 15852e8c16360a2fea060d615a32b45270f8a8fc",
+  "extra_checks": "Qwen3.5とMiniLMの指示選択比較は実測済み。ROS統合経路の新モデルでの物理実行・停止再開・再試行は未検証。",
+  "is_final": false
+}
