@@ -7,7 +7,37 @@ import subprocess
 import uuid
 
 from build_comparison_video import event, wrap_text
-from build_physical_comparison_video import ROOT, render_segment, scene_ass
+from build_physical_comparison_video import ROOT, scene_ass
+
+CANVAS_WIDTH, CANVAS_HEIGHT = 1920, 1080
+CLIP_WIDTH, CLIP_HEIGHT = 928, 580
+CLIP_Y = 391
+CLIP_X = {'left': 20, 'right': 972}
+
+
+def source_dimensions(path):
+    result = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0',
+                             '-show_entries', 'stream=width,height', '-of', 'csv=p=0:s=x',
+                             str(path)], check=True, capture_output=True, text=True)
+    width, height = map(int, result.stdout.strip().split('x'))
+    if width < CLIP_WIDTH or height < CLIP_HEIGHT:
+        raise ValueError(f'Source video is smaller than the comparison panel: {path}')
+    if width * CLIP_HEIGHT != height * CLIP_WIDTH:
+        raise ValueError(f'Source video aspect ratio differs from the comparison panel: {path}')
+    return width, height
+
+
+def render_text_segment(path, subtitles, duration):
+    ass = path.with_suffix('.ass')
+    ass.write_text(subtitles)
+    font_dir = ROOT / 'submission/fonts'
+    subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y',
+                    '-f', 'lavfi', '-i', f'color=c=0x071423:s={CANVAS_WIDTH}x{CANVAS_HEIGHT}:r=30:d={duration}',
+                    '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo',
+                    '-vf', f'ass={ass}:fontsdir={font_dir}', '-map', '0:v', '-map', '1:a',
+                    '-t', str(duration), '-c:v', 'libx264', '-preset', 'veryfast',
+                    '-crf', '18', '-pix_fmt', 'yuv420p', '-r', '30',
+                    '-c:a', 'aac', '-b:a', '96k', '-movflags', '+faststart', str(path)], check=True)
 
 
 def load_rows(experiment, cases_path):
@@ -84,30 +114,30 @@ def render_pair(path, subtitle_text, left, right, duration=12):
     ass = path.with_suffix('.ass')
     ass.write_text(subtitle_text)
     command = ['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y',
-               '-f', 'lavfi', '-i', f'color=c=0x071423:s=1280x720:r=30:d={duration}',
+               '-f', 'lavfi', '-i', f'color=c=0x071423:s={CANVAS_WIDTH}x{CANVAS_HEIGHT}:r=30:d={duration}',
                '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo']
     clips = [clip for clip in (left,right) if clip is not None]
     for clip in clips:
+        source_dimensions(clip)
         command += ['-i', str(clip)]
-    filters = ['[0:v]drawbox=x=40:y=255:w=590:h=335:color=0x182D42:t=fill,'
-               'drawbox=x=650:y=255:w=590:h=335:color=0x182D42:t=fill[bg]']
+    filters = ['[0:v]drawbox=x=14:y=385:w=940:h=592:color=0x182D42:t=fill,'
+               'drawbox=x=966:y=385:w=940:h=592:color=0x182D42:t=fill[bg]']
     current = 'bg'
     input_index = 2
-    for label, clip, x in (('left', left, 55), ('right', right, 665)):
+    for label, clip in (('left', left), ('right', right)):
         if clip is None:
             continue
-        filters.append(f'[{input_index}:v]fps=30,scale=560:314:force_original_aspect_ratio=decrease:'
-                       f'force_divisible_by=2,pad=560:314:(ow-iw)/2:(oh-ih)/2,'
+        filters.append(f'[{input_index}:v]fps=30,scale={CLIP_WIDTH}:{CLIP_HEIGHT}:flags=lanczos,'
                        f'tpad=stop_mode=clone:stop_duration={duration},trim=duration={duration},'
                        f'setpts=PTS-STARTPTS[{label}]')
         next_label = 'v1' if label == 'left' else 'v2'
-        filters.append(f'[{current}][{label}]overlay={x}:265:shortest=1[{next_label}]')
+        filters.append(f'[{current}][{label}]overlay={CLIP_X[label]}:{CLIP_Y}:shortest=1[{next_label}]')
         current = next_label
         input_index += 1
     font_dir = ROOT / 'submission/fonts'
     filters.append(f'[{current}]ass={ass}:fontsdir={font_dir}[video]')
     command += ['-filter_complex', ';'.join(filters), '-map', '[video]', '-map', '1:a',
-                '-t', str(duration), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '22',
+                '-t', str(duration), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18',
                 '-pix_fmt', 'yuv420p', '-r', '30', '-c:a', 'aac', '-b:a', '96k',
                 '-movflags', '+faststart', str(path)]
     subprocess.run(command, check=True)
@@ -120,6 +150,8 @@ def main():
     ap.add_argument('--out', type=Path)
     args = ap.parse_args()
     cases, rows, manifest = load_rows(args.experiment.resolve(), args.cases.resolve())
+    first_clip = ROOT / 'outputs/ros' / rows[cases[0]['id'], 'qwen']['request_id'] / 'demo.mp4'
+    source_width, source_height = source_dimensions(first_clip)
     budgets = manifest.get('steps_per_attempt_by_task') or {
         str(task): manifest['steps_per_attempt'] for task in range(1, 10)}
     stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
@@ -127,7 +159,7 @@ def main():
     out.mkdir(parents=True, exist_ok=False)
     segments = []
     intro = out / 'segment_00.mp4'
-    render_segment(intro, scene_ass([
+    render_text_segment(intro, scene_ass([
         event(0, 4, 'Title', 640, 150, 'ROS指示入力から操作結果を比較'),
         event(0, 4, 'Body', 640, 260, 'Qwen3.5-2B  /  多言語MiniLM'),
         event(0, 4, 'Small', 640, 490, '各モデルが独立に判断し、SmolVLAを個別に実行。'),
@@ -150,7 +182,7 @@ def main():
                 f'操作達成 {m["physical_goal_satisfied"]}/{m["physical_executions"]}  '
                 f'一貫成功 {m["end_to_end_success"]}/{m["requests"]}')
     ending = out / 'segment_10.mp4'
-    render_segment(ending, scene_ass([
+    render_text_segment(ending, scene_ass([
         event(0, 8, 'Title', 640, 105, 'ROS入力 → 判断 → 物理操作'),
         event(0, 8, 'Header', 640, 240, summary_line('qwen','Qwen3.5')),
         event(0, 8, 'Header', 640, 335, summary_line('minilm','MiniLM')),
@@ -169,6 +201,9 @@ def main():
         'source_experiment': args.experiment.name, 'transport': 'ROS 2 /cleanup/instruction',
         'independent_physical_episodes': True, 'task_ids': list(range(1, 10)),
         'summary': totals, 'confirmation_cases_included': False,
+        'resolution': {'width': CANVAS_WIDTH, 'height': CANVAS_HEIGHT},
+        'source_resolution': {'width': source_width, 'height': source_height},
+        'task_panel_resolution': {'width': CLIP_WIDTH, 'height': CLIP_HEIGHT},
         'duration_seconds': 4 + sum(18 if budgets[str(task)] > 200 else 12
                                     for task in range(1, 10)) + 8}, ensure_ascii=False, indent=2) + '\n')
     print(f'Saved {video}', flush=True)

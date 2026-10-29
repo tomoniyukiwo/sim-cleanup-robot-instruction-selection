@@ -13,7 +13,7 @@ def paragraph(text, style=None):
     return f'<w:p>{props}{runs}</w:p>'
 
 
-def build(data, summary=None, planner_repo_override=None, ros_experiment=None):
+def build(data, summary=None, planner_repo_override=None, ros_experiment=None, video_info=None):
     parts = []
     planner_repo = (summary or {}).get('model_repos', {}).get('qwen') or planner_repo_override or 'Qwen/Qwen3.5-2B'
     qwen35 = planner_repo == 'Qwen/Qwen3.5-2B'
@@ -77,6 +77,11 @@ def build(data, summary=None, planner_repo_override=None, ros_experiment=None):
         add('結果は1回の逐次測定であり、速度差の一般化には反復が必要。補足ケースの質問文は比較用に固定した文で、実際のQwenとの対話結果とは区別する。')
         if qwen35 and ros_experiment:
             add('比較動画は確認質問を含めず、task 1〜9のROS入力と判断、各モデルから独立に行った操作映像・LIBERO目標判定を左右並列に示す（約2分）。保留した場合は操作動画を表示しない。')
+            if video_info:
+                canvas = video_info['resolution']
+                panel = video_info['task_panel_resolution']
+                source = video_info['source_resolution']
+                add(f'動画は横{canvas["width"]}×縦{canvas["height"]}。元映像は{source["width"]}×{source["height"]}で、縦横比を保持して各枠{panel["width"]}×{panel["height"]}に表示した。')
         elif qwen35:
             add('比較動画は確認質問を含めず、task 1〜9の遠回しな指示を左右並列に示す（約2分）。モデル名・選択推論時間・共通の操作時間を映像枠の上に置き、実測したLIBERO操作映像を枠内に置いた。同じSmolVLA試行の映像を両側に再掲し、task 4のMiniLM保留では操作映像を表示しない。物理操作は9件中8件で目標達成、task 7は200ステップで未達。')
     else:
@@ -105,18 +110,20 @@ def main():
     ap.add_argument('--data', type=Path, default=Path('submission/report_data.json'))
     ap.add_argument('--summary', type=Path)
     ap.add_argument('--ros-experiment', type=Path, help='Manifest of independent ROS-triggered episodes')
+    ap.add_argument('--video-manifest', type=Path, help='Rendered comparison video metadata')
     ap.add_argument('--config', type=Path, help='Use this planner model for an unmeasured draft')
     ap.add_argument('--out', type=Path, required=True)
     args = ap.parse_args()
     data = json.loads(args.data.read_text())
     summary = json.loads(args.summary.read_text()) if args.summary else None
     ros_experiment = json.loads(args.ros_experiment.read_text()) if args.ros_experiment else None
+    video_info = json.loads(args.video_manifest.read_text()) if args.video_manifest else None
     model = json.loads(args.config.read_text())['planner_repo'] if args.config else None
     if model and summary and summary.get('model_repos', {}).get('qwen') not in (None, model):
         ap.error('Config and summary planner models differ')
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(args.out, 'x', zipfile.ZIP_DEFLATED) as archive:
-        for name, content in build(data, summary, model, ros_experiment).items():
+        for name, content in build(data, summary, model, ros_experiment, video_info).items():
             archive.writestr(name, content)
     print(f'Saved editable draft: {args.out}')
 

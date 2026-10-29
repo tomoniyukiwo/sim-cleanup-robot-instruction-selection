@@ -15,6 +15,14 @@ spec.loader.exec_module(video)
 
 
 class ROSComparisonVideoTests(unittest.TestCase):
+    def test_full_hd_layout_keeps_source_aspect(self):
+        self.assertEqual((video.CANVAS_WIDTH, video.CANVAS_HEIGHT), (1920, 1080))
+        self.assertEqual(video.CLIP_WIDTH * 640, video.CLIP_HEIGHT * 1024)
+        self.assertLess(video.CLIP_X['left'] + video.CLIP_WIDTH,
+                        video.CLIP_X['right'])
+        self.assertLessEqual(video.CLIP_X['right'] + video.CLIP_WIDTH,
+                             video.CANVAS_WIDTH)
+
     def fixture(self, root):
         cases = [{'id': f'indirect_{i}', 'kind': 'indirect',
                   'instruction': f'指示{i}', 'expected_task_id': i}

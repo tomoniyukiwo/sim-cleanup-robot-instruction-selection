@@ -79,6 +79,26 @@ class Qwen35ReportTests(unittest.TestCase):
                                 ros_experiment=ros)['word/document.xml']
         self.assertIn('task 7は最大300ステップ、他のtaskは最大200ステップ', document)
 
+    def test_ros_video_dimensions_are_reported(self):
+        data = json.loads((ROOT / 'submission/report_data.json').read_text())
+        metrics = {'requests': 9, 'correct_selection': 9, 'wrong_selection': 0,
+                   'held_or_clarified': 0, 'physical_executions': 9,
+                   'physical_goal_satisfied': 8, 'end_to_end_success': 8}
+        ros = {'input_transport': 'ROS 2 /cleanup/instruction',
+               'summary': {'qwen': metrics, 'minilm': metrics}, 'runs': []}
+        video = {'resolution': {'width': 1920, 'height': 1080},
+                 'source_resolution': {'width': 1024, 'height': 640},
+                 'task_panel_resolution': {'width': 928, 'height': 580}}
+        selection = {'correct': 1, 'count': 1, 'wrong_execution': 0,
+                     'clarification_questions': 0, 'held': 0,
+                     'median_inference_seconds': 1.0, 'by_kind': {}}
+        summary = {'metrics': {'qwen': selection, 'minilm': selection},
+                   'load_seconds': {'qwen': 1.0, 'minilm': 1.0}}
+        document = module.build(data, summary, planner_repo_override='Qwen/Qwen3.5-2B',
+                                ros_experiment=ros, video_info=video)['word/document.xml']
+        self.assertIn('動画は横1920×縦1080', document)
+        self.assertIn('各枠928×580', document)
+
 
 if __name__ == '__main__':
     unittest.main()

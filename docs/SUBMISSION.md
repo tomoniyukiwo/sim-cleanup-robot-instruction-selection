@@ -2,11 +2,12 @@
 
 ROS 2で受けた遠回しな指示9件について、Qwen3.5とMiniLMの判断から個別に操作した比較動画を作成済み。Qwen3.5は一貫成功8/9、MiniLMは7/9。MiniLMのtask 4は保留・操作なし、task 7は両モデルで300ステップ再実行後も目標未達。各回を独立したROSリクエストとして撮影した。実機・外部推論API・追加学習は使用していない。
 
-- [ ] 手元の実測入りWord草稿 `submission/report_qwen35_ros_v8.docx`にOmniCampus名またはID、実際のGitHub・YouTube URL、公開commitを記入し、内容を確認する。
+- [ ] 手元の実測入りWord草稿 `submission/report_qwen35_ros_v9.docx`にOmniCampus名またはID、実際のGitHub・YouTube URL、公開commitを記入し、内容を確認する。
 - [ ] Wordから`説明資料_PAI最終課題_omnicampusアカウント名.pdf`へ書き出す。
-- [ ] [比較動画](VIDEO_SCRIPT.md)を再生し、入力指示・両手法の判定・実際のタスク動画・無音であること・約2分6秒の長さを確認する。
+- [ ] [比較動画](VIDEO_SCRIPT.md)を再生し、横1920×縦1080の解像度、入力指示・両手法の判定・実際のタスク動画・無音であること・約2分6秒の長さを確認する。
 - [ ] [公開用ZIPのコード一式](GITHUB_PUBLISH.md)を展開してGitHubリポジトリへ置き、公開設定が**Public**であることをログアウト状態で確認する。提出するのはZIPではなくリポジトリURL。モデル重み、トークン、ローカルパス入りlock、生ログは公開しない。
 - [ ] 動画を自分のYouTubeへアップロードし、限定公開以上にする。タイトルは`PAI最終課題_omnicampusアカウント名`またはIDを使用する。「子ども向け」「年齢制限」はいいえ。インスタントプレミア公開は選択しない。
+- [ ] アップロード後はYouTubeプレーヤーの歯車アイコンから「画質」を開き、`1080p`が選択できることと、その設定で文字を読めることを確認する。アップロード直後に表示されない場合はHD処理の完了を待つ。[YouTubeの案内](https://support.google.com/youtube/answer/58134)も参照する。
 - [ ] PDF、GitHub URL、YouTube URLをOmniCampusへ提出する。採点完了まで動画を削除・非公開にしない。
 
 氏名・所属・メールアドレスをPDF・コード・動画に含めない。OmniCampus名が個人名ならIDを使う。締切はユーザー共有情報では11月2日10:15。10月31日・11月1日は作業できない予定。
