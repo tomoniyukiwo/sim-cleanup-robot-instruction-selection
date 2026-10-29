@@ -1,0 +1,266 @@
+{
+  "schema_version": 1,
+  "input_transport": "ROS 2 /cleanup/instruction",
+  "model_revisions": {
+    "qwen": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+    "minilm": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+    "smolvla": "a24f1f380461b665158d52acd140152c79e8b36d"
+  },
+  "conditions": {
+    "seed": 42,
+    "init_state": 0,
+    "steps_per_attempt_by_task": {
+      "1": 200,
+      "2": 200,
+      "3": 200,
+      "4": 200,
+      "5": 200,
+      "6": 200,
+      "7": 300,
+      "8": 200,
+      "9": 200
+    },
+    "max_attempts": 1,
+    "scene_reset_per_request": true
+  },
+  "summary": {
+    "qwen": {
+      "requests": 9,
+      "correct_selection": 9,
+      "wrong_selection": 0,
+      "held_or_clarified": 0,
+      "physical_executions": 9,
+      "physical_goal_satisfied": 8,
+      "end_to_end_success": 8
+    },
+    "minilm": {
+      "requests": 9,
+      "correct_selection": 8,
+      "wrong_selection": 0,
+      "held_or_clarified": 1,
+      "physical_executions": 8,
+      "physical_goal_satisfied": 7,
+      "end_to_end_success": 7
+    }
+  },
+  "cases": [
+    {
+      "method": "qwen",
+      "case_id": "cream_cheese_indirect",
+      "expected_task_id": 1,
+      "decision": "execute",
+      "selected_task_id": 1,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 122,
+      "planning_wall_seconds": 9.387988927999686,
+      "operation_wall_seconds": 16.037666767006158
+    },
+    {
+      "method": "qwen",
+      "case_id": "salad_dressing_indirect",
+      "expected_task_id": 2,
+      "decision": "execute",
+      "selected_task_id": 2,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 115,
+      "planning_wall_seconds": 9.57867494799575,
+      "operation_wall_seconds": 14.482350292004412
+    },
+    {
+      "method": "qwen",
+      "case_id": "bbq_sauce_indirect",
+      "expected_task_id": 3,
+      "decision": "execute",
+      "selected_task_id": 3,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 127,
+      "planning_wall_seconds": 9.539864742000645,
+      "operation_wall_seconds": 15.37376963099814
+    },
+    {
+      "method": "qwen",
+      "case_id": "ketchup_indirect",
+      "expected_task_id": 4,
+      "decision": "execute",
+      "selected_task_id": 4,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 142,
+      "planning_wall_seconds": 9.478774034003436,
+      "operation_wall_seconds": 17.36997360100213
+    },
+    {
+      "method": "qwen",
+      "case_id": "tomato_sauce_indirect",
+      "expected_task_id": 5,
+      "decision": "execute",
+      "selected_task_id": 5,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 119,
+      "planning_wall_seconds": 9.252418452000711,
+      "operation_wall_seconds": 14.46294870100246
+    },
+    {
+      "method": "qwen",
+      "case_id": "butter_indirect",
+      "expected_task_id": 6,
+      "decision": "execute",
+      "selected_task_id": 6,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 149,
+      "planning_wall_seconds": 8.983842396002728,
+      "operation_wall_seconds": 17.452446568000596
+    },
+    {
+      "method": "qwen",
+      "case_id": "milk_indirect",
+      "expected_task_id": 7,
+      "decision": "execute",
+      "selected_task_id": 7,
+      "success": false,
+      "reason": "all_budgets_exhausted",
+      "steps": 300,
+      "planning_wall_seconds": 9.446273766996455,
+      "operation_wall_seconds": 34.12681752699427
+    },
+    {
+      "method": "qwen",
+      "case_id": "pudding_indirect",
+      "expected_task_id": 8,
+      "decision": "execute",
+      "selected_task_id": 8,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 141,
+      "planning_wall_seconds": 9.564311948997783,
+      "operation_wall_seconds": 17.055208480000147
+    },
+    {
+      "method": "qwen",
+      "case_id": "juice_indirect",
+      "expected_task_id": 9,
+      "decision": "execute",
+      "selected_task_id": 9,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 122,
+      "planning_wall_seconds": 9.515056812990224,
+      "operation_wall_seconds": 15.592271923000226
+    },
+    {
+      "method": "minilm",
+      "case_id": "cream_cheese_indirect",
+      "expected_task_id": 1,
+      "decision": "execute",
+      "selected_task_id": 1,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 122,
+      "planning_wall_seconds": 7.563048994998098,
+      "operation_wall_seconds": 15.244966177007882
+    },
+    {
+      "method": "minilm",
+      "case_id": "salad_dressing_indirect",
+      "expected_task_id": 2,
+      "decision": "execute",
+      "selected_task_id": 2,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 115,
+      "planning_wall_seconds": 7.646387552013039,
+      "operation_wall_seconds": 14.064109229002497
+    },
+    {
+      "method": "minilm",
+      "case_id": "bbq_sauce_indirect",
+      "expected_task_id": 3,
+      "decision": "execute",
+      "selected_task_id": 3,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 127,
+      "planning_wall_seconds": 7.477359620999778,
+      "operation_wall_seconds": 15.286568805997376
+    },
+    {
+      "method": "minilm",
+      "case_id": "ketchup_indirect",
+      "expected_task_id": 4,
+      "decision": "hold",
+      "selected_task_id": null,
+      "success": null,
+      "reason": "hold",
+      "steps": null,
+      "planning_wall_seconds": 7.759360744006699,
+      "operation_wall_seconds": null
+    },
+    {
+      "method": "minilm",
+      "case_id": "tomato_sauce_indirect",
+      "expected_task_id": 5,
+      "decision": "execute",
+      "selected_task_id": 5,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 119,
+      "planning_wall_seconds": 7.3461145460023545,
+      "operation_wall_seconds": 14.473688792000758
+    },
+    {
+      "method": "minilm",
+      "case_id": "butter_indirect",
+      "expected_task_id": 6,
+      "decision": "execute",
+      "selected_task_id": 6,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 149,
+      "planning_wall_seconds": 6.904070144999423,
+      "operation_wall_seconds": 17.864053347992012
+    },
+    {
+      "method": "minilm",
+      "case_id": "milk_indirect",
+      "expected_task_id": 7,
+      "decision": "execute",
+      "selected_task_id": 7,
+      "success": false,
+      "reason": "all_budgets_exhausted",
+      "steps": 300,
+      "planning_wall_seconds": 7.81828584401228,
+      "operation_wall_seconds": 32.31266219999816
+    },
+    {
+      "method": "minilm",
+      "case_id": "pudding_indirect",
+      "expected_task_id": 8,
+      "decision": "execute",
+      "selected_task_id": 8,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 141,
+      "planning_wall_seconds": 7.757782892003888,
+      "operation_wall_seconds": 17.424227461990085
+    },
+    {
+      "method": "minilm",
+      "case_id": "juice_indirect",
+      "expected_task_id": 9,
+      "decision": "execute",
+      "selected_task_id": 9,
+      "success": true,
+      "reason": "environment_goal_satisfied",
+      "steps": 122,
+      "planning_wall_seconds": 7.655458602996077,
+      "operation_wall_seconds": 15.00512932499987
+    }
+  ],
+  "timing_note": "Planning wall time includes model load; operation wall time excludes planning. Video follows simulation time.",
+  "interpretation_note": "Independent ROS requests and physical episodes per method; a held request has no physical execution."
+}

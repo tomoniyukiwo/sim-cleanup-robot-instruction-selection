@@ -19,12 +19,15 @@ from std_srvs.srv import SetBool,Trigger
 PREFIX='CLEANUP_EVENT '
 
 class Supervisor(Node):
-    def __init__(self,root,config_path=None,lock_path=None):
+    def __init__(self,root,config_path=None,lock_path=None,selector='qwen'):
         super().__init__('cleanup_supervisor')
         self.root=root;self.process=None;self.mail=queue.Queue();self.reader_done=threading.Event()
         self.config_path=config_path or root/'configs/default.json'
         self.lock_path=lock_path or root/'models/assets.qwen35.lock.json'
+        if selector not in {'qwen','minilm'}:raise ValueError('Unknown selector')
+        self.selector=selector
         self.plan=None;self.dialogue_context=[];self.last_instruction='';self.cancel_pending=False;self.log=None
+        self.finished_at=None
         self.status_pub=self.create_publisher(String,'/cleanup/status',10)
         self.plan_pub=self.create_publisher(String,'/cleanup/plan',10)
         self.event_pub=self.create_publisher(String,'/cleanup/events',50)
@@ -54,10 +57,12 @@ class Supervisor(Node):
         rid=f'{stamp}_{uuid.uuid4().hex[:8]}'
         out=self.root/'outputs/ros'/rid;out.mkdir(parents=True)
         request={'request_id':rid,'instruction':text,'context':self.dialogue_context,
+                 'selector':self.selector,
                  'config':str(self.config_path),'catalog':str(self.root/'tasks/libero_object.json'),
                  'lock':str(self.lock_path),'seed':42,'init_state':0}
         path=out/'request.json';path.write_text(json.dumps(request,ensure_ascii=False,indent=2))
         self.last_instruction=text;self.plan=None;self.cancel_pending=False;self.reader_done.clear()
+        self.finished_at=None
         env=os.environ.copy()
         for key in ['PYTHONPATH','PYTHONHOME','VIRTUAL_ENV','AMENT_PREFIX_PATH','COLCON_PREFIX_PATH']:
             env.pop(key,None)
@@ -80,7 +85,7 @@ class Supervisor(Node):
                         except json.JSONDecodeError:pass
             finally:self.reader_done.set()
         threading.Thread(target=read,daemon=True).start()
-        self.status('planning',request_id=rid,output=str(out))
+        self.status('planning',request_id=rid,selector=self.selector,output=str(out))
     def on_pause(self,request,response):
         command='pause' if request.data else 'resume'
         response.success=self.command({'command':command})
@@ -107,17 +112,25 @@ class Supervisor(Node):
                 self.command({'command':'retry','allow':allow})
                 self.status('retry_authorized' if allow else 'retry_declined',attempt=event['completed_attempt'])
             elif kind=='finished':
+                self.finished_at=time.monotonic()
                 if event['reason']=='clarify' and self.plan:
                     self.dialogue_context=(self.dialogue_context+[{'request':self.last_instruction,'question':self.plan['message']}])[-2:]
                 else:self.dialogue_context=[]
-                self.status('finished',success=event['success'],reason=event['reason'])
+                self.status('finished',request_id=event['request_id'],selector=self.selector,
+                            success=event['success'],reason=event['reason'])
             elif kind in ['paused','resumed','execution_started','worker_error','loading_executor','progress']:
                 self.status(kind,**{k:v for k,v in event.items() if k!='event'})
+        if (self.process is not None and self.finished_at is not None and
+                self.process.poll() is None and time.monotonic()-self.finished_at>5):
+            # The result and video are already closed; some ML runtimes retain
+            # background threads after a completed episode.
+            self.process.terminate()
         if self.process is not None and self.process.poll() is not None and self.reader_done.is_set():
             code=self.process.returncode
             self.process.stdin.close();self.process.stdout.close();self.process=None
             if self.log:self.log.close();self.log=None
-            if code:self.status('worker_failed',exit_code=code,message='See worker.log in the run folder')
+            if code and self.finished_at is None:
+                self.status('worker_failed',exit_code=code,message='See worker.log in the run folder')
             self.status('ready')
     def close(self):
         if self.process is not None:
@@ -133,10 +146,11 @@ def main():
     ap=argparse.ArgumentParser();ap.add_argument('--root',type=Path,default=Path(__file__).resolve().parents[1])
     ap.add_argument('--config',type=Path,default=Path('configs/default.json'))
     ap.add_argument('--lock',type=Path,default=Path('models/assets.qwen35.lock.json'))
+    ap.add_argument('--selector',choices=['qwen','minilm'],default='qwen')
     args,ros_args=ap.parse_known_args();root=args.root.resolve()
     config=args.config if args.config.is_absolute() else root/args.config
     lock=args.lock if args.lock.is_absolute() else root/args.lock
-    rclpy.init(args=ros_args);node=Supervisor(root,config,lock)
+    rclpy.init(args=ros_args);node=Supervisor(root,config,lock,args.selector)
     try:rclpy.spin(node)
     except KeyboardInterrupt:pass
     finally:

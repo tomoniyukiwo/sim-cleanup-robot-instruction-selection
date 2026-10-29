@@ -47,6 +47,38 @@ class Qwen35ReportTests(unittest.TestCase):
         self.assertIn('同じSmolVLA試行の映像を両側に再掲', document)
         self.assertIn('task 7は200ステップで未達', document)
 
+    def test_ros_experiment_reports_independent_physical_results(self):
+        data = json.loads((ROOT / 'submission/report_data.json').read_text())
+        selection = {'correct': 1, 'count': 1, 'wrong_execution': 0,
+                     'clarification_questions': 0, 'held': 0,
+                     'median_inference_seconds': 1.0, 'by_kind': {}}
+        summary = {'model_repos': {'qwen': 'Qwen/Qwen3.5-2B'},
+                   'model_revisions': {'qwen': {'planner': 'revision'}},
+                   'metrics': {'qwen': selection, 'minilm': selection},
+                   'load_seconds': {'qwen': 1.0, 'minilm': 1.0}, 'errors': []}
+        metrics = {'requests': 9, 'correct_selection': 9, 'wrong_selection': 0,
+                   'held_or_clarified': 0, 'physical_executions': 9,
+                   'physical_goal_satisfied': 8, 'end_to_end_success': 8}
+        ros = {'input_transport': 'ROS 2 /cleanup/instruction',
+               'summary': {'qwen': metrics, 'minilm': metrics}, 'runs': []}
+        document = module.build(data, summary, ros_experiment=ros)['word/document.xml']
+        self.assertIn('別々のROSリクエストとして実行', document)
+        self.assertIn('各モデルから独立に行った操作映像', document)
+        self.assertNotIn('同じSmolVLA試行の映像を両側に再掲', document)
+        self.assertNotIn('ROS統合経路での物理実行は未測定', document)
+
+    def test_ros_experiment_reports_task7_extended_budget(self):
+        data = json.loads((ROOT / 'submission/report_data.json').read_text())
+        metrics = {'requests': 9, 'correct_selection': 9, 'wrong_selection': 0,
+                   'held_or_clarified': 0, 'physical_executions': 9,
+                   'physical_goal_satisfied': 8, 'end_to_end_success': 8}
+        ros = {'input_transport': 'ROS 2 /cleanup/instruction',
+               'steps_per_attempt_by_task': {str(i): 300 if i == 7 else 200 for i in range(1, 10)},
+               'summary': {'qwen': metrics, 'minilm': metrics}, 'runs': []}
+        document = module.build(data, planner_repo_override='Qwen/Qwen3.5-2B',
+                                ros_experiment=ros)['word/document.xml']
+        self.assertIn('task 7は最大300ステップ、他のtaskは最大200ステップ', document)
+
 
 if __name__ == '__main__':
     unittest.main()

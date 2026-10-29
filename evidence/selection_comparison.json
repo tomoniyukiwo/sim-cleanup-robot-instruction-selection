@@ -1,0 +1,97 @@
+{
+  "load_seconds": {
+    "qwen": 2.7785758140016696,
+    "minilm": 7.489833122999698
+  },
+  "completed_cases": 48,
+  "model_repos": {
+    "qwen": "Qwen/Qwen3.5-2B",
+    "minilm": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+  },
+  "model_revisions": {
+    "qwen": {
+      "planner": "15852e8c16360a2fea060d615a32b45270f8a8fc"
+    },
+    "minilm": {
+      "embedding": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42"
+    }
+  },
+  "policy_revision": "a24f1f380461b665158d52acd140152c79e8b36d",
+  "evaluation_task_ids": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "fewshot_task_id": 0,
+  "errors": [],
+  "metrics": {
+    "minilm": {
+      "count": 24,
+      "correct": 21,
+      "wrong_execution": 2,
+      "clarification_questions": 0,
+      "held": 2,
+      "invalid": 0,
+      "median_inference_seconds": 0.5667890199983958,
+      "by_kind": {
+        "ambiguous": {
+          "count": 3,
+          "correct": 1,
+          "wrong_execution": 2
+        },
+        "indirect": {
+          "count": 9,
+          "correct": 8,
+          "wrong_execution": 0
+        },
+        "reply": {
+          "count": 3,
+          "correct": 3,
+          "wrong_execution": 0
+        },
+        "standard": {
+          "count": 9,
+          "correct": 9,
+          "wrong_execution": 0
+        }
+      }
+    },
+    "qwen": {
+      "count": 24,
+      "correct": 22,
+      "wrong_execution": 1,
+      "clarification_questions": 3,
+      "held": 0,
+      "invalid": 0,
+      "median_inference_seconds": 1.5473569024979952,
+      "by_kind": {
+        "ambiguous": {
+          "count": 3,
+          "correct": 2,
+          "wrong_execution": 1
+        },
+        "indirect": {
+          "count": 9,
+          "correct": 9,
+          "wrong_execution": 0
+        },
+        "reply": {
+          "count": 3,
+          "correct": 2,
+          "wrong_execution": 0
+        },
+        "standard": {
+          "count": 9,
+          "correct": 9,
+          "wrong_execution": 0
+        }
+      }
+    }
+  }
+}

@@ -21,4 +21,4 @@ LeRobot v0.4.4のLiberoEnv.stepは成功時に自動resetする。成功直前�
 ROS supervisor→ローカルLLMでタスク選択・確認質問→LLM解放→SmolVLA実行。ROSが再試行の許可を返さなければ続行しない。pause/resume/cancelも実行ループに作用する。rclpyとMLは別プロセスとし、ROSのPython依存をuv環境へ混ぜない。詳しい実行方法と境界はROS_A.md。
 
 ## Qwen3.5 few-shot版
-Qwen3.5-2Bはマルチモーダル用の新しいTransformers読み込み方式を使うため、旧SmolVLA環境とは別のuv環境・子プロセスで動かす。task 0の英語標準指示と日本語言い換えを回答付き例示とし、task 1〜9を評価に使う。プロンプトには登録タスク一覧を含めるためtask 0も候補には残るが、task 0への評価入力は送らない。Qwen3.5にもカメラ画像は渡さない。選択後は子プロセスを終了してGPUメモリを解放してからSmolVLAを読み込む。モデル変更後の操作成功や精度は新しい実測が必要。
+Qwen3.5-2Bはマルチモーダル用の新しいTransformers読み込み方式を使うため、旧SmolVLA環境とは別のuv環境・子プロセスで動かす。task 0の英語標準指示と日本語言い換えを回答付き例示とし、task 1〜9を評価に使う。プロンプトには登録タスク一覧を含めるためtask 0も候補には残るが、task 0への評価入力は送らない。Qwen3.5にもカメラ画像は渡さない。選択後は子プロセスを終了してGPUメモリを解放してからSmolVLAを読み込む。Qwen3.5とMiniLMの判断をそれぞれROS入力経由で物理実行した結果は[検証状況](VALIDATION.md)に記録する。

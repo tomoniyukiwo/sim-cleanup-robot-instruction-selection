@@ -8,14 +8,15 @@ Qwenには指示とタスク一覧のテキストを渡します。カメラ画�
 
 ## 実験の範囲と結果
 
-[task 0の2例](tasks/fewshot_task0.json)をQwen3.5のfew-shot例とし、[task 1〜9の評価ケース](tasks/comparison_cases_qwen35.json)を事前に固定しました。指示選択の1回の測定では、Qwen3.5が24件中22件、MiniLMが24件中21件で期待した判断を返しました。遠回しな指示9件に限ると、それぞれ9件、8件です。情報不足の指示では、確認・保留と誤った実行判断を区別して集計しています。MiniLMの保留は自然言語の確認質問ではありません。
+[task 0の2例](tasks/fewshot_task0.json)をQwen3.5のfew-shot例とし、[task 1〜9の評価ケース](tasks/comparison_cases_qwen35.json)を事前に固定しました。指示選択の1回の測定では、Qwen3.5が24件中22件、MiniLMが24件中21件で期待した判断を返しました。遠回しな指示9件に限ると、それぞれ9件、8件です。情報不足の指示では、確認・保留と誤った実行判断を区別して集計しています。MiniLMの保留は自然言語の確認質問ではありません。[選択比較サマリー](evidence/selection_comparison.json)に条件別の実測値があります。
 
-SmolVLAの操作は、task IDを明示して各タスク1回ずつ測定しました。task 1〜6、8、9はLIBEROの目標条件を達成し、task 7は200ステップで未達でした（8/9）。この9件は共通の操作試行であり、Qwen3.5とMiniLMがそれぞれ独立にロボットを動かした結果ではありません。Qwen3.5を組み込んだROS経路での物理操作、停止・再開、再試行の効果は未測定です。測定条件と結果の詳細は[検証状況](docs/VALIDATION.md)を参照してください。
+ROS 2の`/cleanup/instruction`から同じ9指示をモデルごとに送信し、各判断に従ってSmolVLAを独立に実行しました。Qwen3.5は正選択9/9、物理目標達成8/9。MiniLMは正選択8/9、task 4を保留して操作せず、実行した8件中7件で目標を達成しました。task 7は両手法とも200ステップで未達だったため、同じ指示を300ステップで個別に再実行しましたが、目標未達でした。正選択から目標達成までの一貫成功はQwen3.5が8/9、MiniLMが7/9です。各回で同じseedと初期状態にシーンをリセットしています。task 7の最終比較は300ステップ、ほかのタスクは200ステップ、各1試行です。一般的な成功率や物理方策の優劣は示しません。[公開用の実行サマリー](evidence/ros_method_comparison_300.json)と[検証状況](docs/VALIDATION.md)に条件と結果を記載しています。停止・再開と再試行の効果は未測定です。
 
 ## 動作環境
 
 - Ubuntu 22.04.5 LTS、NVIDIA RTX 4060 Ti（VRAM 16GB）で確認
 - Python 3.12、uv 0.13.4以上、CUDA対応PyTorch、ffmpeg
+- 比較動画の日本語表示にはNoto Sans CJK JPフォント
 - ROS 2 Humble（ROSプロセスはシステムPythonで実行）
 - SmolVLA用の依存はルートの`pyproject.toml`と`uv.lock`、Qwen3.5用は`planner_env/`内の別のlockで管理
 
@@ -53,25 +54,36 @@ bash scripts/setup_qwen35.sh compare
 
 ## ロボットを実行する
 
-ROS経路の起動と指示送信は[ROS 2の手順](docs/ROS_A.md)を参照してください。単独のSmolVLA試行を記録する場合は、次のコマンドでtask 1〜9をそれぞれ1回実行します。各タスクをseed 42、初期状態0、最大200ステップで個別に初期化します。
+ROS経路の起動と指示送信は[ROS 2の手順](docs/ROS_A.md)を参照してください。固定した遠回しな指示9件をQwen3.5とMiniLMの両方へROSトピックで送信し、それぞれの判断から操作まで記録するには、ROS 2 Humbleを読み込んだシステムPythonで次を実行します。
 
 ```bash
-python3 scripts/record_task_clips.py
+source /opt/ros/humble/setup.bash
+/usr/bin/python3 scripts/run_ros_method_comparison.py
 ```
 
-`outputs/physical_clips/<実行ID>/`に各タスクの`result.json`、`demo.mp4`、manifestを保存します。このコマンドはtask IDを明示しており、指示選択器ごとの物理成功率は測定しません。成功はLIBEROの目標条件で判定します。
+各リクエストは`outputs/ros/<実行ID>/`に指示、選択、操作結果、`demo.mp4`を保存します。集計は`outputs/ros_comparison/<実行ID>/manifest.json`に保存します。保留したリクエストには操作動画がありません。seed 42、初期状態0、最大200ステップ、1試行を適用します。成功はLIBEROの目標条件で判定します。操作結果の保存後に実行が中断された場合は、`--out <既存の比較フォルダー> --resume`で残りを続けられます。
+
+200ステップで未達だったtask 7だけを両手法で300ステップ再実行し、元の比較と統合する場合は次を実行します。統合後の`manifest.json`はタスク別のステップ上限を保持します。
+
+```bash
+source /opt/ros/humble/setup.bash
+/usr/bin/python3 scripts/run_ros_method_comparison.py \
+  --config configs/ros_comparison_300.json --task-ids 7
+python3 scripts/merge_ros_step_extension.py \
+  --base outputs/ros_comparison/<200ステップの比較実行ID> \
+  --extended outputs/ros_comparison/<task7の300ステップ実行ID>
+```
 
 ## 比較動画を作る
 
-指示選択の実行IDと物理試行の実行IDを指定します。
+完了したROS比較フォルダーを指定します。task 7の300ステップ版を反映する場合は、統合後の比較フォルダーを指定してください。
 
 ```bash
-python3 scripts/build_physical_comparison_video.py \
-  --run outputs/comparison/<選択実行ID> \
-  --clips outputs/physical_clips/<物理実行ID>
+python3 scripts/build_ros_comparison_video.py \
+  --experiment outputs/ros_comparison/<比較実行ID>
 ```
 
-約2分の動画を新しい`outputs/video/<実行ID>/`へ保存します。遠回しな指示9件について、Qwen3.5とMiniLMの選択結果・推論時間を左右同じ時間軸に表示し、枠内に実測した操作映像を置きます。両手法が同じタスクを選んだ場合は同じSmolVLA映像を再掲します。保留した側には操作映像を表示しません。確認質問は動画に含めません。画面上の選択時間にモデル読み込みやロボット制御時間は含まれません。[動画構成](docs/VIDEO_SCRIPT.md)にも説明があります。
+統合した300ステップ版では約2分6秒の動画を新しい`outputs/video/<実行ID>/`へ保存します。遠回しな指示9件について、Qwen3.5とMiniLMのROS入力、選択結果、選択処理時間、個別の操作時間と目標判定を左右同じ時間軸に表示します。両側の枠内には**別々のROS実行で撮影した動画**を置きます。task 7は18秒表示し、300ステップの映像を最後まで含めます。保留した側には操作映像を表示しません。確認質問は動画に含めません。選択処理時間にはモデル読み込みを含み、操作時間とは別です。[動画構成](docs/VIDEO_SCRIPT.md)にも説明があります。
 
 ## コードと制約
 

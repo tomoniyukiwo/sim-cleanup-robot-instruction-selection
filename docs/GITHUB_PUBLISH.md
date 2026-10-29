@@ -4,7 +4,7 @@
 
 ## ZIPに入る内容
 
-`python3 scripts/build_public_release.py --require-planner-lock --out cleanup_robot_qwen35_public.zip`で新しいZIPを作る。同名のZIPがあれば番号を付けて保存し、上書きしない。ルートの`README.md`、`pyproject.toml`、`uv.lock`、`planner_env/pyproject.toml`、`planner_env/uv.lock`、`src/`、`ros/`、`scripts/`、`configs/`、`tasks/`、`tests/`、`docs/`、ライセンスを含める。実験の再現手順、Qwen3.5・MiniLMの比較、SmolVLA実行、動画合成のコードが入る。
+`python3 scripts/build_public_release.py --require-planner-lock --evidence evidence/selection_comparison.json --evidence evidence/ros_method_comparison_300.json --out cleanup_robot_qwen35_public.zip`で新しいZIPを作る。同名のZIPがあれば番号を付けて保存し、上書きしない。ルートの`README.md`、`pyproject.toml`、`uv.lock`、`planner_env/pyproject.toml`、`planner_env/uv.lock`、`src/`、`ros/`、`scripts/`、`configs/`、`tasks/`、`tests/`、`docs/`、ライセンスと確認済みの集計JSONを含める。実験の再現手順、Qwen3.5・MiniLMの比較、SmolVLA実行、動画合成のコードが入る。
 
 モデル重み、モデル資産lock、仮想環境、ローカルキャッシュ、生ログ、操作動画、Word草稿、フォントは含めない。実行結果の公開用サマリーを加える場合は、入力文と個人情報を目視確認したJSONだけを`--evidence evidence/ファイル名.json`で指定する。
 

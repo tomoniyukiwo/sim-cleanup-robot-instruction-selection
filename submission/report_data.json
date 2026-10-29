@@ -3,12 +3,12 @@
   "github_url": "［公開GitHub URLを記入］",
   "youtube_url": "［YouTube URLを記入］",
   "git_commit": "［公開したcommit SHAを記入］",
-  "result_note": "登録済みtask_idを明示してSmolVLAを直接実行した9タスクの物理試行を撮影した。これはQwen3.5とMiniLMの独立した操作試行ではない。",
-  "input_instruction": "各タスクの英語標準指示をSmolVLAに使用。比較動画上の日本語入力は別途測定した遠回しな指示。",
-  "task": "libero_object / task 1〜9。各タスクのシーンを個別に初期化。",
-  "result": "task 1〜6、8、9はLIBERO目標達成。task 7（牛乳）は200ステップで未達。合計8/9。",
-  "conditions": "各タスクseed 42 / init_state 0 / 200ステップ以内 / 1試行。task_idを明示して同じSmolVLA方策を使用。",
+  "result_note": "ROS 2の/cleanup/instructionから各モデルへ遠回しな指示9件を個別に送信し、選択結果に基づきSmolVLAを実行した。Qwen3.5は正選択9/9・目標達成8/9・一貫成功8/9、MiniLMは正選択8/9・操作した8件中7件で目標達成・一貫成功7/9。",
+  "input_instruction": "ROS 2の/cleanup/instructionへ固定した日本語の遠回しな指示9件を送信。SmolVLAには選択タスクの英語標準指示を使用。",
+  "task": "libero_object / task 1〜9。Qwen3.5とMiniLMの各リクエストでシーンを個別に初期化。",
+  "result": "MiniLMはtask 4を保留し操作なし。task 7は両モデルで200ステップ未達後、300ステップで再実行しても未達。その他の実行はLIBERO目標達成。",
+  "conditions": "各リクエストseed 42 / init_state 0 / 1試行。task 7は300ステップ以内、他のtaskは200ステップ以内。同じSmolVLA方策を使用。",
   "model_revisions": "SmolVLA: a24f1f380461b665158d52acd140152c79e8b36d / Qwen3.5: 15852e8c16360a2fea060d615a32b45270f8a8fc",
-  "extra_checks": "Qwen3.5とMiniLMの指示選択比較は実測済み。ROS統合経路の新モデルでの物理実行・停止再開・再試行は未検証。",
+  "extra_checks": "指示選択24ケースとROS入力からの独立した18リクエストを実測済み。停止再開と再試行の効果は未検証。",
   "is_final": false
 }

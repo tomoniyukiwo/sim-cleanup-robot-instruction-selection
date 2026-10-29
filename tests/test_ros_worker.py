@@ -6,7 +6,7 @@ import tempfile
 import types
 import unittest
 from unittest.mock import patch
-from cleanup_robot.ros_worker import main,PREFIX
+from cleanup_robot.ros_worker import main,PREFIX,select_plan
 from test_controller import FakeBackend
 
 class DummyRecorder:
@@ -16,6 +16,27 @@ class DummyRecorder:
     def close(self):pass
 
 class WorkerProtocolTests(unittest.TestCase):
+    def test_minilm_selection_maps_execute_and_hold_without_question(self):
+        task={'task_id':2,'instruction':'put the item away'}
+        routing=types.ModuleType('cleanup_robot.routing')
+        class FakeRouter:
+            accepted=True
+            def __init__(self,catalog,path,cfg):pass
+            def route(self,text):
+                self.last_text=text
+                return {'accepted':self.accepted,'task':task,'score':.6,'margin':.1}
+        routing.Router=FakeRouter
+        with patch.dict(sys.modules,{'cleanup_robot.routing':routing}):
+            plan,raw=select_plan('指示',[],{'tasks':[task]}, {},{'embedding':{'path':'unused'}},
+                                 'minilm',lambda:False)
+            self.assertEqual((plan['decision'],plan['task_id']),('execute',2))
+            self.assertFalse(plan['retry_on_timeout'])
+            self.assertIn('accepted',raw)
+            FakeRouter.accepted=False
+            plan,_=select_plan('曖昧',[],{'tasks':[task]}, {},{'embedding':{'path':'unused'}},
+                               'minilm',lambda:False)
+            self.assertEqual((plan['decision'],plan['task_id']),('hold',None))
+            self.assertFalse(plan['retry_on_timeout'])
     def run_worker(self,decision):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)

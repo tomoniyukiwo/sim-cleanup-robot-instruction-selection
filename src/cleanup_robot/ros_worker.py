@@ -11,6 +11,26 @@ import time
 
 PREFIX='CLEANUP_EVENT '
 
+def select_plan(instruction,context,catalog,cfg,lock,selector,cancelled):
+    if selector=='qwen':
+        from .planner import plan_local
+        return plan_local(instruction,context,catalog,cfg,lock,cancelled=cancelled)
+    if selector=='minilm':
+        from .routing import Router
+        router=Router(catalog,lock['embedding']['path'],cfg)
+        text=' '.join([item['request'] for item in context]+[instruction])
+        route=router.route(text)
+        if route['accepted']:
+            task=route['task']
+            plan={'decision':'execute','task_id':task['task_id'],'task':task,
+                  'message':'類似度検索で登録タスクを選択','retry_on_timeout':False}
+        else:
+            plan={'decision':'hold','task_id':None,
+                  'message':'類似度または候補間の差が閾値未満のため保留',
+                  'retry_on_timeout':False}
+        return plan,json.dumps(route,ensure_ascii=False)
+    raise ValueError(f'Unknown selector: {selector}')
+
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--request',type=Path,required=True);args=ap.parse_args()
     request=json.loads(args.request.read_text());out=args.request.parent
@@ -25,18 +45,21 @@ def main():
     threading.Thread(target=control.read,args=(sys.stdin,),daemon=True).start()
     os.environ['HF_HUB_OFFLINE']='1';os.environ['TRANSFORMERS_OFFLINE']='1'
     backend=None;recorder=None;report={'success':False,'reason':'initialization_error'}
+    planning_wall_seconds=None
     cfg=json.loads(Path(request['config']).read_text())
     catalog=json.loads(Path(request['catalog']).read_text())
     lock=json.loads(Path(request['lock']).read_text())
     try:
         if catalog['suite']!=cfg['suite']:raise ValueError('Catalog/config suite mismatch')
         with redirect_stdout(sys.stderr):
-            from .planner import plan_local
             emit('planning_started')
-            plan,raw=plan_local(request['instruction'],request.get('context',[]),catalog,cfg,lock,
-                                cancelled=control.cancelled.is_set)
-            (out/'plan.json').write_text(json.dumps({'plan':plan,'raw_output':raw},ensure_ascii=False,indent=2))
-            emit('plan_ready',plan=plan)
+            planning_started=time.perf_counter()
+            plan,raw=select_plan(request['instruction'],request.get('context',[]),catalog,cfg,lock,
+                                 request.get('selector','qwen'),control.cancelled.is_set)
+            planning_wall_seconds=time.perf_counter()-planning_started
+            (out/'plan.json').write_text(json.dumps({'plan':plan,'raw_output':raw,
+                'planning_wall_seconds':planning_wall_seconds},ensure_ascii=False,indent=2))
+            emit('plan_ready',plan=plan,planning_wall_seconds=planning_wall_seconds)
             if plan['decision']!='execute':
                 report={'success':False,'reason':plan['decision'],'plan':plan};return
             if control.cancelled.is_set():raise InterruptedError('Cancelled before execution')
@@ -71,6 +94,7 @@ def main():
         if recorder is not None:recorder.close()
         if backend is not None:backend.close()
         report.update(request=request,config=cfg,assets=lock,
+            selector=request.get('selector','qwen'),planning_wall_seconds=planning_wall_seconds,
             catalog_sha256=hashlib.sha256(Path(request['catalog']).read_bytes()).hexdigest(),
             success_source='LIBERO goal predicate',retry_mode='ROS-authorized continuation; no environment reset')
         (out/'result.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))

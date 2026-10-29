@@ -1,6 +1,6 @@
-# 次に行うこと
+# 提出前の作業
 
-1. Qwen3.5用のモデル準備と選択比較は完了した。[比較結果](../outputs/comparison/20261028T172007_51bd6b16/summary.json)と失敗例を確認する。無効出力を正答率の分母から除かない。
-2. 正しく`execute`された代表例だけROSで実行し、動画と目標判定を確認する。曖昧ケースはロボットへ送らない。
-3. task 1〜9の物理実行動画と左右並列の比較動画は作成済み。task 7の失敗と、両側に同じSmolVLA映像を再掲する説明を確認する。Wordを更新し、公開前に個人情報とローカルパスを確認する。
-4. GitHubとYouTubeのURLを取得し、PDFとともに提出する。未測定事項は未測定と記す。
+1. [ROS比較実測](./VALIDATION.md)と[完成動画の説明](./VIDEO_SCRIPT.md)を確認する。特にMiniLMのtask 4保留と、両モデルのtask 7が300ステップ再実行後も未達だった結果を保持する。
+2. [編集用Word](../submission/README.md)にOmniCampus名またはID、実際のGitHub・YouTube URL、公開commitを記入し、指定名のPDFに書き出す。
+3. 公開用コードをPublicのGitHubリポジトリへ配置し、ログアウト状態で閲覧できることを確認する。動画をYouTubeへアップロードする。
+4. PDFと両URLをOmniCampusへ提出する。停止・再開と再試行の効果は未測定と記す。
